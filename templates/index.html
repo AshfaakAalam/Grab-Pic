@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Event Photos{% endblock %}
+
+{% block content %}
+<h1>Event Photos</h1>
+<p class="subtitle">Create an event, then collect all its photos in one place.</p>
+
+<div class="home-cards">
+    <a class="home-card" href="{{ url_for('my_events') }}">
+        <h2>My Events</h2>
+        <p>See the events you've created and open one to add photos.</p>
+    </a>
+
+    <a class="home-card" href="{{ url_for('create_event') }}">
+        <h2>Create Event</h2>
+        <p>Start a new event and begin uploading photos right away.</p>
+    </a>
+</div>
+
+<style>
+    .home-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+    }
+
+    .home-card {
+        display: block;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 32px 28px;
+        color: var(--ink);
+        text-decoration: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .home-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 14px rgba(47, 91, 234, 0.12);
+    }
+
+    .home-card h2 { margin: 0 0 8px; font-size: 1.4rem; color: var(--primary); }
+    .home-card p { margin: 0; color: var(--muted); }
+</style>
+{% endblock %}

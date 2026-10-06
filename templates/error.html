@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}{{ status_code }} | Event Photos{% endblock %}
+
+{% block content %}
+<h1>{{ status_code }}</h1>
+<p class="subtitle">{{ message }}</p>
+<a class="btn" href="{{ url_for('home') }}">Back to home</a>
+{% endblock %}

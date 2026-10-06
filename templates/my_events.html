@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}My Events | Event Photos{% endblock %}
+
+{% block content %}
+<h1>My Events</h1>
+<p class="subtitle">Open an event to upload photos or see its gallery.</p>
+
+{% if events %}
+    <ul class="event-list">
+        {% for event in events %}
+            <li class="event-row">
+                <div>
+                    <div class="event-name">{{ event.name }}</div>
+                    <div class="event-meta">{{ event.photo_count }} photo{{ '' if event.photo_count == 1 else 's' }}</div>
+                </div>
+                <a class="btn btn-outline" href="{{ url_for('upload_photo', event_id=event.id) }}">Open event</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="panel">
+        <p style="margin-top: 0;">You haven't created any events yet.</p>
+        <a class="btn" href="{{ url_for('create_event') }}">Create your first event</a>
+    </div>
+{% endif %}
+
+<style>
+    .event-list { list-style: none; margin: 0; padding: 0; }
+
+    .event-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+    }
+
+    .event-name { font-weight: 600; font-size: 1.1rem; }
+    .event-meta { color: var(--muted); font-size: 0.9rem; }
+</style>
+{% endblock %}

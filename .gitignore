@@ -1,0 +1,47 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+
+# Uploaded images
+static/uploads/
+
+# Local databases
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Python build files
+build/
+dist/
+*.egg-info/.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Uploaded photos stay out of git; keep the folder itself
+static/uploads/*
+!static/uploads/.gitkeep
