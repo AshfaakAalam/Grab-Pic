@@ -6,6 +6,10 @@
 <h1>Event: {{ event.name }}</h1>
 <p class="subtitle">Choose one or more photos (PNG, JPG, GIF or WEBP) and upload them.</p>
 
+<p>
+    <a class="btn btn-outline" href="{{ url_for('find_me', event_id=event.id) }}">Find My Photos</a>
+</p>
+
 <div class="panel" style="max-width: 520px;">
     <form method="POST" action="{{ url_for('upload_photo', event_id=event.id) }}" enctype="multipart/form-data">
         <div class="field">

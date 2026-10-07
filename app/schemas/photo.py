@@ -12,4 +12,12 @@ class PhotoResponse(BaseModel):
     storage_key: str
     content_type: str
     file_size: int
+    face_status: str
     created_at: datetime
+
+
+class PhotoMatchResponse(BaseModel):
+    """A photo returned by "Find My Photos" with its best similarity score."""
+
+    photo: PhotoResponse
+    score: float

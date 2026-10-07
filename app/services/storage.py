@@ -25,6 +25,9 @@ class LocalStorage:
         with path.open("wb") as out:
             shutil.copyfileobj(fileobj, out)
 
+    def read(self, key: str) -> bytes:
+        return self._full_path(key).read_bytes()
+
     def delete(self, key: str) -> None:
         try:
             self._full_path(key).unlink(missing_ok=True)

@@ -25,6 +25,25 @@ class Settings(BaseSettings):
     # Stand-in for the logged-in user until authentication exists.
     default_user_email: str = "demo@example.com"
 
+    # --- Vector database (Qdrant) ---
+    # QDRANT_URL set  -> talk to a Qdrant server (e.g. Docker).
+    # QDRANT_URL empty -> embedded mode, data stored in QDRANT_PATH (no server needed).
+    qdrant_url: str | None = None
+    qdrant_api_key: str | None = None
+    qdrant_path: Path = BASE_DIR / "qdrant_data"
+    qdrant_collection: str = "grabpic_faces"
+
+    # --- Face recognition (InsightFace, runs fully locally) ---
+    face_model_name: str = "buffalo_l"          # SCRFD detector + ArcFace R50, 512-d
+    face_model_root: str = "~/.insightface"     # where model files are downloaded
+    face_use_gpu: bool = True                   # falls back to CPU automatically
+    face_det_size: int = 960                    # detector input size (multiple of 32)
+    face_min_det_score: float = 0.6             # ignore low-confidence detections
+    face_min_size_px: int = 40                  # ignore tiny background faces
+    face_match_threshold: float = 0.40          # cosine similarity needed to call it a match
+    face_search_limit: int = 500                # max matching faces fetched per search
+    show_match_scores: bool = True              # show similarity on the results page (dev aid)
+
     @property
     def max_upload_size_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024

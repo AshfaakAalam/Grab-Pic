@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -9,10 +9,19 @@ from app.core.config import Settings, get_settings
 from app.core.templating import templates
 from app.db.database import get_db
 from app.db.models import Event, Photo
-from app.dependencies import get_event_or_404, get_storage
+from app.dependencies import (
+    get_event_or_404,
+    get_face_analyzer,
+    get_session_factory,
+    get_storage,
+    get_vector_store,
+)
 from app.schemas.event import EventDetailResponse
+from app.services.face_pipeline import index_photos
+from app.services.face_recognition import FaceAnalyzer
 from app.services.storage import LocalStorage
 from app.services.uploads import InvalidUpload, clean_filename, validate_image
+from app.services.vector_store import VectorStore
 
 router = APIRouter()
 
@@ -48,7 +57,7 @@ def upload_page(
     # Messages arrive as numeric query parameters after a redirect.
     success = None
     if uploaded:
-        success = f"{uploaded} photo(s) uploaded successfully."
+        success = f"{uploaded} photo(s) uploaded. Faces are being scanned in the background."
     elif created:
         success = "Event created. You can upload photos now."
     errors = (
@@ -62,14 +71,19 @@ def upload_page(
 @router.post("/upload/{event_id}", name="upload_photo_submit")
 def upload_photos(
     request: Request,
+    background_tasks: BackgroundTasks,
     # `| str`: with no file chosen, browsers send an empty text part instead of a file.
     photos: Annotated[list[UploadFile | str] | None, File()] = None,
     event: Event = Depends(get_event_or_404),
     db: Session = Depends(get_db),
     storage: LocalStorage = Depends(get_storage),
     settings: Settings = Depends(get_settings),
+    session_factory=Depends(get_session_factory),
+    analyzer: FaceAnalyzer = Depends(get_face_analyzer),
+    store: VectorStore = Depends(get_vector_store),
 ):
     saved_keys: list[str] = []
+    new_photos: list[Photo] = []
     errors: list[str] = []
 
     try:
@@ -87,15 +101,15 @@ def upload_photos(
             storage.save(storage_key, upload.file)
             saved_keys.append(storage_key)
 
-            db.add(
-                Photo(
-                    event_id=event.id,
-                    original_filename=clean_filename(upload.filename),
-                    storage_key=storage_key,
-                    content_type=image.content_type,
-                    file_size=image.size,
-                )
+            photo = Photo(
+                event_id=event.id,
+                original_filename=clean_filename(upload.filename),
+                storage_key=storage_key,
+                content_type=image.content_type,
+                file_size=image.size,
             )
+            db.add(photo)
+            new_photos.append(photo)
 
         if saved_keys:
             db.commit()
@@ -107,6 +121,16 @@ def upload_photos(
         raise
 
     if saved_keys:
+        # The upload is complete and saved. Face scanning runs AFTER the response is
+        # sent, so the user never waits for it (and an ML failure can't break uploads).
+        background_tasks.add_task(
+            index_photos,
+            [photo.id for photo in new_photos],
+            session_factory,
+            storage,
+            analyzer,
+            store,
+        )
         url = request.url_for("upload_photo", event_id=event.id).include_query_params(
             uploaded=len(saved_keys), skipped=len(errors)
         )
